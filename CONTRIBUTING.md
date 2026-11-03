@@ -35,4 +35,4 @@ Codex owns sessions, turns, history, queues, and errors. Reuse native APIs and e
 
 Before sharing a patch, review its files and commit messages for credentials, private prompts, session identifiers, and local machine paths. Keep authentication, deployment data, and private logs outside the checkout. Use redacted reproductions for bug reports.
 
-Contributions are provided under the project's [Apache-2.0 license](LICENSE).
+Contributions are provided under the project's [MIT license](LICENSE).

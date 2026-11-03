@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Native Codex deployment and finite Grok task handoff"
 requires-python = ">=3.11"
 readme = "README.md"
-license = "Apache-2.0"
+license = "MIT"
 license-files = ["LICENSE"]
 authors = [{name = "Yongsul Kim"}]
 dependencies = ["openai-codex==0.163.0", "pydantic==2.14.2", "packaging==26.3"]

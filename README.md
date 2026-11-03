@@ -79,4 +79,4 @@ The skill creates a worker, starts the task, and waits for completion through a 
 
 See the [development instructions](CONTRIBUTING.md) for local tests and what CI verifies.
 
-Copyright 2026 Yongsul Kim. Licensed under [Apache-2.0](LICENSE). Upstream components retain their own licenses.
+Copyright 2026 Yongsul Kim. Licensed under [MIT](LICENSE). Upstream components retain their own licenses.
