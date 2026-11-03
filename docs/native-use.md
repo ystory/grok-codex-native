@@ -150,7 +150,7 @@ The waiter returns after completion, failure, or interruption with full item rec
 
 Give this finite wait to Grok's existing `Task` subagent. The subagent uses current Shell and wait tools until the process exits, then returns JSON and file paths. Keep its Task ID and Shell terminal ID in the original conversation. When Task completion wakes the parent Bot, read the result and attach files using the current `SendMessage` attachment fields.
 
-Map control paths to host paths, or copy files to the computer Grok can read. A path in message text does not prove attachment. A separate maintainer observation confirmed delayed Task completion can wake the parent. Native Codex execution through actual Grok file delivery remains an installation-specific acceptance check. Shell background execution alone has no verified wakeup behavior.
+Map control paths to host paths, or copy files to the computer Grok can read. A path in message text does not prove attachment. In the maintainer's testing, delayed Task completion woke the parent. Native Codex execution through actual Grok file delivery remains an installation-specific acceptance check. Shell background execution alone has no verified wakeup behavior.
 
 ## Watch another task and unwatch
 

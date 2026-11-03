@@ -30,7 +30,7 @@ See [what was tested](docs/contract.md#what-was-tested) for the measurements.
 ## Requirements
 
 - A Grok Bot and its cloud computer. The installer needs passwordless `sudo -n` there.
-- A ChatGPT account with Codex access.
+- A ChatGPT account with Codex access and [device code login](https://learn.chatgpt.com/docs/auth) turned on. Enable it in ChatGPT's security settings; a workspace admin controls it for workspace accounts.
 
 Install this on your own cloud computer, for your own use, with your own ChatGPT account. OpenAI's [terms](https://openai.com/policies/row-terms-of-use/) apply to that account, and [all your Bots share the computer's command-line credentials](https://docs.x.ai/grok-bot/computer-and-apps).
 

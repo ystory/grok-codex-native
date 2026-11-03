@@ -33,13 +33,13 @@ Place the extracted project at `/workspace/grok-codex-native` on that cloud comp
 
 ## Register the shared skill
 
-First verify installation, login, and a representative task on your cloud computer. Check activation for each additional Bot.
+First verify installation and login on your cloud computer. Check activation for each additional Bot.
 
 The full skill source is [skill/grok-codex-native/SKILL.md](../skill/grok-codex-native/SKILL.md). Keeping the file on disk does not register it in Grok.
 
 1. Inspect Grok's current skill list for a `grok-codex-native` name collision or an existing skill with the same role.
 2. Review the complete skill and record the installed project's actual absolute path on that cloud computer. The recommended path is `/workspace/grok-codex-native`.
-3. Save the full skill through Grok's supported UI or currently exposed `save_skill` tool. Follow the current tool schema for name, description, and body.
+3. Ask the Bot to save the full skill, using its current `save_skill` tool when available. Confirm the saved body matches the file.
 4. In **Connect apps**, check that the skill is enabled for the target Bot under **Private skills**.
 5. Run a new task and verify skill discovery, execution on that cloud computer, native IDs, Task completion wakeup, and actual file attachments.
 
