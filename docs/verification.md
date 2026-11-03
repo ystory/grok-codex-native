@@ -1,4 +1,4 @@
-# Verify Grok Bot's own cloud computer
+# Verify your installation
 
 Keep [recorded maintainer results](contract.md#what-was-tested) separate from checks on your installation. Use disposable tasks and fresh worker names. Keep sensitive logs and files in a private data directory. Record the command, CLI and SDK versions, worker and native IDs, expected result, and actual result. Investigate failures before marking the affected capability complete.
 
@@ -77,7 +77,7 @@ The fixture secret is a public test string. Do not substitute real credentials. 
 1. Create two fresh workers with `--browser-port 3000`. Mount a sentinel input file and fake secret in only one worker.
 2. Start a native Codex turn in each worker. Have each turn write and reread a different sentinel in `/work/source`. Confirm `apply_patch`, repository `AGENTS.md`, requested skill input, and input-file reads execute in that worker.
 3. Install different dependency versions in separate worker virtual environments or projects. Confirm installation in one worker does not change the other's version.
-4. Start servers with different responses on `0.0.0.0:3000` in both workers. Check each response through its distinct VM loopback `browserPorts` mapping and your actual browser tool.
+4. Start servers with different responses on `0.0.0.0:3000` in both workers. Check each response through its distinct loopback `browserPorts` mapping on the cloud computer and your actual browser tool.
 5. Check required external Git and package access. Confirm mounted secrets are available only where required and absent from the other worker. Do not log secret values.
 6. Check that workers lack the control ChatGPT credential directory and Docker socket. Inspect access to host source and the native store. Confirm missing and incorrect exec WebSocket tokens are rejected. Redact token values from logs.
 7. Keep Docker's default seccomp and AppArmor policies enabled. Verify actual file and command execution in a native `externalSandbox` turn. Confirm host files, control credentials, and the Docker socket are not exposed.
@@ -95,7 +95,7 @@ Queue only behind an active turn. For an unloaded thread, inspect and explicitly
 
 Verify exact native decline responses to server requests. A disconnected client after a handler exception or fallback to SDK default approval fails the check. Interactive approval relay between conversations is not implemented.
 
-The recorded control result is partial: steer, queue, cancel, and explicit-worker follow-up passed, while strict immediate process termination failed despite native `interrupted` status. That interrupted command was also absent from native full history. Preserve the actual PID and marker observations. See the [recorded limit](contract.md#what-was-tested).
+In the maintainer's run, the control result was partial: steer, queue, cancel, and explicit-worker follow-up passed, while strict immediate process termination failed despite native `interrupted` status. That interrupted command was also absent from native full history. Preserve the actual PID and marker observations. See the [recorded limit](contract.md#what-was-tested).
 
 ## Verify history and lists
 
@@ -167,7 +167,7 @@ sg docker -c './scripts/compose.sh exec -T control python /dev/stdin --base-path
 sg docker -c './scripts/compose.sh exec -T control python /dev/stdin --base-path "$VERIFY_CONTROL_BASE" collect --report "$VERIFY_CONTROL_DIR/mixed-launch.json" --out "$VERIFY_CONTROL_DIR/mixed-collect.json"' < "$VERIFY_TOOLS/acceptance_mixed.py"
 ```
 
-To recheck a collector correction, run only `collect` against the same saved launch/turns and a new output such as `mixed-collect-v2.json`. Preserve the first result and original resource samples.
+To rerun collection, run only `collect` against the same saved launch and turns with a new output path. Preserve the first result and original resource samples.
 
 ### Control and terminal-thread lifecycle
 
@@ -180,7 +180,7 @@ export VERIFY_EXPECTED_HOSTNAME
 sg docker -c './scripts/compose.sh exec -T control python /dev/stdin --worker "$VERIFY_SINGLE_ENV" --expected-hostname "$VERIFY_EXPECTED_HOSTNAME" --origin verify-control --report-dir "$VERIFY_CONTROL_DIR/control" --run-models' < "$VERIFY_TOOLS/acceptance_control.py"
 ```
 
-**The recorded strict immediate-stop result is failed.** A later physical check must identify the PID from `interrupt-started.json` in that exact worker and compare `/proc/PID/stat` and completion markers; native `interrupted` or a missing command-history item does not prove the process stopped. Later PID absence cannot establish its exact termination time. The probe can stop before its lifecycle block; keep its failed report.
+**The strict immediate-stop check failed in the maintainer's run.** A later physical check must identify the PID from `interrupt-started.json` in that exact worker and compare `/proc/PID/stat` and completion markers; native `interrupted` or a missing command-history item does not prove the process stopped. Later PID absence cannot establish its exact termination time. The probe can stop before its lifecycle block; keep its failed report.
 
 For the separate model-free lifecycle procedure, first record the terminal turn IDs, known PID absence, queue and goal. Apply native name-set/archive, match the exact ID/name in archived listing, unarchive and match live listing plus thread-read, then compare full history and queue/goal with the baseline. The existing lifecycle block in `acceptance_control.py` defines those calls. This procedure does not rewrite a failed immediate-stop result or create a new turn.
 
@@ -193,9 +193,9 @@ sg docker -c './scripts/compose.sh exec -T control python /dev/stdin launch --wo
 sg docker -c './scripts/compose.sh exec -T control python /dev/stdin capture --report "$VERIFY_CONTROL_DIR/clock-launch.json" --out "$VERIFY_CONTROL_DIR/clock-before.json"' < "$VERIFY_TOOLS/acceptance_recreation.py"
 ```
 
-For natural idle, end the parent response after recording real launch/start evidence. Leave **no Task waiter, handoff/collect process, sampler, keepalive, routine, or open computer preview** for this case. After the agreed idle window, perform one capture with a fresh output. Parent idle alone does not establish computer sleep; compare actual clock gaps, boot identity, native state, and artifacts.
+For natural idle, end the parent response after recording real launch/start evidence. Leave **no Task waiter, handoff/collect process, sampler, keepalive, routine, or open computer preview** for this case. After your chosen idle window, perform one capture with a fresh output. Parent idle alone does not establish computer sleep; compare actual clock gaps, boot identity, native state, and artifacts.
 
-For an active-computer recreation case, use a separate launch/report with a longer duration, such as `--duration 1200 --interval 2`. The probe itself performs no update/reset. Use only a separately authorized official Grok Update/Reset action and record its actual effect and boot/PID 1 identity. If runtime is absent afterward, rebuild control through the installer, then capture **before** worker restoration/registration, thread resume, waiter attachment, or queue changes. `collect` may resume through handoff, so it is not the first post-recreation observation.
+For an active-computer recreation case, use a separate launch/report with a longer duration, such as `--duration 1200 --interval 2`. The probe itself performs no update/reset. Trigger Update or Reset yourself under **Settings → Computer**, and record its actual effect and boot/PID 1 identity. If runtime is absent afterward, rebuild control through the installer, then capture **before** worker restoration/registration, thread resume, waiter attachment, or queue changes. `collect` may resume through handoff, so it is not the first post-recreation observation.
 
 ```sh
 sg docker -c './scripts/compose.sh exec -T control python /dev/stdin capture --report "$VERIFY_CONTROL_DIR/clock-launch.json" --out "$VERIFY_CONTROL_DIR/clock-after.json"' < "$VERIFY_TOOLS/acceptance_recreation.py"
