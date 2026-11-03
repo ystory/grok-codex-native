@@ -1,77 +1,82 @@
 # Grok Codex native
 
-Delegate coding tasks from Grok Bot to native Codex on a Linux VM. Run each task in a Docker worker, send follow-up instructions, inspect history, and collect files for the original Grok conversation.
+Delegate coding tasks from your Grok Bot to Codex on the Bot's own cloud computer, using your ChatGPT account.
 
-Codex owns sessions, history, queued input, and errors. A control container holds the ChatGPT login and native store. Workers provide task-specific execution environments. The project adds deployment scripts, a finite completion waiter, and preflight checks for permanent deletion.
+Each task runs in its own Docker worker. Your Bot can steer it, queue follow-ups, read its full history, and receive the result and files back in the original conversation.
 
-The pinned versions are Codex CLI `0.166.0`, official Python SDK `0.163.0`, and websocat `4.0.0-alpha3`. Native environments and `deferred_executor` are experimental. Docker workers share the host kernel. See [capabilities and limits](docs/contract.md).
+This is an independent project. It is not affiliated with or endorsed by xAI, OpenAI, or Anysphere. Grok, Codex, and Cursor are trademarks of their respective owners.
 
-The maintainer verified the backend on Linux arm64. Production Grok installation, skill registration, and complete delivery with real attachments remain unverified. See the [verification report](docs/verification-results.md).
+## What it covers
 
-## Prerequisites
+The project moves the delegation workflow of Grok Bot's built-in Cloud Agent to Codex. Of the Cloud Agent's 16 capabilities:
 
-- Linux `amd64` or `arm64`, Python `3.11` or later, Docker Engine, and the Compose plugin. Actual execution has been verified only on arm64.
-- Permission to control Docker, with worker isolation and Linux host networking support.
-- Network access for images, packages, Git, ChatGPT login, and Codex services.
-- A ChatGPT account with Codex access. GitHub uses separate credentials.
+- **8 are ported:** model settings, repository skills, completion notifications, watching other tasks, status, task lists, PR lookup, and artifact lists.
+- **6 are partial:** starting a task, starting without a repository, follow-ups, full history, stopping and cleanup, and discovering choices.
+- **1 is narrowed:** tasks run only in Docker workers on the Bot's cloud computer.
+- **1 is not ported:** project mode.
 
-Run commands on the selected VM through Grok's existing computer selection or SSH. Grok computers, files, and command-line credentials are [shared across Bots](https://docs.x.ai/grok-bot/computer-and-apps).
+See the [capability matrix](docs/contract.md#capability-matrix) for each difference.
 
-## Install and log in
+## Limits
 
-Keep this directory as a standalone checkout, preferably `~/code/grok-codex-native`. Any absolute installation path works. If using an archive, [verify its checksum and manifest](docs/operations.md#build-and-verify-a-release-archive) first.
+- **Sleep pauses work.** In testing, a task resumed after a manual Wake, but it did not run during sleep.
+- **Reset and computer updates end running tasks.** Files, history, and login survive, and you continue with a new turn.
+- **`interrupted` does not mean stopped.** A process outlived that state in testing.
+- **Eight concurrent light tasks were tested, not guaranteed.** Your capacity depends on the workload.
+- **Workers share the host kernel.** They are not separate VMs.
 
-From the directory containing `scripts/`, run the following commands. Keep the private data directory outside the checkout.
+See [what was tested](docs/contract.md#what-was-tested) for the measurements.
 
-```sh
-cd "$HOME/code/grok-codex-native"
-./scripts/prepare.sh "$HOME/.local/share/grok-codex"
-./scripts/compose.sh --profile build-worker build
-./scripts/compose.sh up -d --wait control
-./scripts/compose.sh exec control codex login --device-auth
-./scripts/healthcheck.sh
-```
+## Requirements
 
-Authenticate on the displayed site. Keep tokens out of chat. Preparation preserves existing native configuration and credentials. Health checks verify connectivity and ChatGPT account type. The deployment keeps `include_local = false`.
+- A Grok Bot and its cloud computer. The installer needs passwordless `sudo -n` there.
+- A ChatGPT account with Codex access.
 
-## Start a task
+Install this on your own cloud computer, for your own use, with your own ChatGPT account. OpenAI's [terms](https://openai.com/policies/row-terms-of-use/) apply to that account, and [all your Bots share the computer's command-line credentials](https://docs.x.ai/grok-bot/computer-and-apps).
 
-Create a fresh worker. This example initializes a local Git repository without publishing it.
+## Install
 
-```sh
-python3 scripts/new-worker.py example --browser-port 3000
-cp examples/brief.json /tmp/grok-codex-brief.json
-```
+> **Draft:** these steps have not yet been run from a fresh checkout of this repository.
 
-For an existing repository, add `--repo REPOSITORY_URL --ref REF`. Configure private Git access first. Worker output includes environment IDs, source and artifact paths, and VM loopback browser ports. See [inputs and prepared images](docs/native-use.md).
+Paste this into your Bot:
 
-Edit the copied brief with the task, title, and `origin`, a stable calling Bot or conversation identity. Keep worker and environment IDs consistent. Set a model, settings, or repository skill only when explicitly requested.
+> Install grok-codex-native on your cloud computer through Shell. Run `git clone --branch v0.1.0 --depth 1 https://github.com/ystory/grok-codex-native.git /workspace/grok-codex-native`, then run `python3 scripts/install-grok-cloud.py` in that directory as the normal user, without sudo. If it reports `authentication_still_required`, run the device login from the project's README and give me the link and code. Then save `skill/grok-codex-native/SKILL.md` as a private skill, enable it for this Bot, and report the health check result.
+
+To run the same steps yourself in the cloud computer's Shell:
 
 ```sh
-./scripts/compose.sh exec -T control python examples/launch_and_wait.py --no-wait /dev/stdin < /tmp/grok-codex-brief.json
+git clone --branch v0.1.0 --depth 1 https://github.com/ystory/grok-codex-native.git /workspace/grok-codex-native
+cd /workspace/grok-codex-native
+python3 scripts/install-grok-cloud.py
+sg docker -c './scripts/compose.sh exec control codex login --device-auth'
+sg docker -c './scripts/healthcheck.sh'
 ```
 
-Give Grok's existing Task subagent this finite waiter with the returned IDs and artifact path.
+Skip the login command if the installer finds an existing login. Keep tokens out of chat. Then [register the skill](docs/operations.md#register-the-shared-skill).
 
-```sh
-./scripts/compose.sh exec -T control python -m grok_codex_native.handoff --thread THREAD_ID --turn TURN_ID --artifacts /var/lib/grok-codex/artifacts/WORKER/THREAD_ID
-```
+You can also install from a [release archive](https://github.com/ystory/grok-codex-native/releases). [Verify its checksum and manifest](docs/operations.md#build-and-verify-a-release-archive) first, and extract it to the same path.
 
-Keep native IDs, Task ID, and the subagent Shell terminal ID in the original conversation. When Task returns, the parent reads terminal state and errors, then sends actual files through `SendMessage`. Map control paths to host paths or copy files to Grok's computer. A path in text is not an attachment.
+The project stays in `/workspace/grok-codex-native` and private data in `/workspace/grok-codex-data`, because Grok documents [`/workspace` as the durable location for project files](https://docs.x.ai/grok-bot/computer-and-apps#work-with-files). The installer rebuilds Docker and images after a [computer replacement](docs/operations.md#recover-after-hosted-computer-replacement).
 
-Complete the [Grok delivery checks](docs/verification.md#verify-completion-delivery-in-grok) and [skill registration](docs/operations.md#register-the-shared-skill) for your installation. Shell-only background wakeup remains unverified. For direct terminal execution that waits in one process, omit `--no-wait`.
+## Use it
 
-## Further use
+Ask your Bot by skill name:
 
-- [Native task operations](docs/native-use.md) covers inputs, control, history, watch, lookup, and deletion.
-- [Operations](docs/operations.md) covers restart, upgrades, packaging, and removal.
-- [Verification](docs/verification.md) provides runnable checks and manual acceptance steps.
-- [Pinned sources](docs/sources.md) records protocol and product references.
+> Use the grok-codex-native skill to [task] in this repository. When it finishes, report the verification results and attach the generated files to this conversation.
 
-The project returns native IDs, history files, artifacts, and actual PR URLs. It creates no hosted task page or Codex deep link.
+The skill creates a worker, starts the task, and waits for completion through a finite Task. It does not change your Bot's global instructions, memory, or default Cloud Agent routing.
+
+## Documentation
+
+- [Capabilities and limits](docs/contract.md)
+- [Native task operations](docs/native-use.md): inputs, control, history, watch, lookup, and deletion
+- [Operations](docs/operations.md): restart, recovery, upgrades, packaging, and removal
+- [Verification](docs/verification.md): runnable checks and manual acceptance steps
+- [Pinned sources](docs/sources.md): protocol and product references
+- [Glossary](GLOSSARY.md)
 
 ## Development and license
 
-See [development instructions](CONTRIBUTING.md) for local tests and what CI verifies.
+See the [development instructions](CONTRIBUTING.md) for local tests and what CI verifies.
 
 Copyright 2026 Yongsul Kim. Licensed under [Apache-2.0](LICENSE). Upstream components retain their own licenses.

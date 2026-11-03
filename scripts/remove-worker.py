@@ -2,8 +2,10 @@
 import argparse
 import json
 import subprocess
+import sys
 
-from _docker import REALM_LABEL, ROLE_LABEL, deployment, inspect_worker
+from _docker import PROJECT, REALM_LABEL, ROLE_LABEL, deployment, inspect_worker
+import _worker as worker_launch
 
 
 def main():
@@ -11,8 +13,13 @@ def main():
     parser.add_argument("name")
     args = parser.parse_args()
     config = deployment()
-    worker = inspect_worker(config, args.name)
-    identity = config.worker_name(args.name)
+    with worker_launch.worker_lock(config, args.name):
+        _remove(config, args.name)
+
+
+def _remove(config, name):
+    worker = inspect_worker(config, name)
+    identity = config.worker_name(name)
     if worker["State"]["Running"] or worker["State"]["Restarting"] or worker["State"]["Paused"]:
         raise SystemExit("Stop native work and explicitly docker stop this worker before removing it.")
     networks = worker["NetworkSettings"]["Networks"]
@@ -23,6 +30,10 @@ def main():
     if labels.get(REALM_LABEL) != config.project or labels.get(ROLE_LABEL) != "worker-network":
         raise SystemExit("Refusing an unmanaged Docker network.")
     subprocess.run(["docker", "rm", identity], check=True)
+    subprocess.run([
+        "sudo", "-n", sys.executable, str(PROJECT / "scripts/worker-network.py"),
+        "remove", "--project", config.project, "--network", identity + "-net",
+    ], check=True)
     subprocess.run(["docker", "network", "rm", identity + "-net"], check=True)
     print(json.dumps({
         "removedContainer": identity,

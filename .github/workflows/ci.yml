@@ -13,6 +13,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  secret-scan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install gitleaks
+        run: |
+          curl --fail --show-error --location "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz" --output "$RUNNER_TEMP/gitleaks.tar.gz"
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum --check -
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+      - name: Scan commits for secrets
+        run: '"$RUNNER_TEMP/gitleaks" git --redact --no-banner .'
+
   check:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -59,7 +76,11 @@ jobs:
       - name: Prepare the isolated deployment
         run: ./scripts/prepare.sh "$RUNNER_TEMP/grok-codex"
       - name: Build the control and worker images
-        run: ./scripts/compose.sh --profile build-worker build
+        run: |
+          set -a
+          . ./deploy/.env
+          set +a
+          COMPOSE_PROFILES=build-worker docker buildx bake --allow=network.host --load -f deploy/compose.yaml --set control.context=. --set worker-template.context=. control worker-template
       - name: Verify native startup and worker executable
         run: |
           ./scripts/compose.sh up -d --wait control

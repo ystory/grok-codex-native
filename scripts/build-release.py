@@ -34,13 +34,13 @@ def main():
     with archive.open("xb") as stream, gzip.GzipFile(fileobj=stream, mode="wb", filename="", mtime=0) as compressed:
         with tarfile.open(fileobj=compressed, mode="w") as target:
             for path in sorted(files):
-                info = target.gettarinfo(str(path), arcname="codex-native/" + path.relative_to(project).as_posix())
+                info = target.gettarinfo(str(path), arcname="grok-codex-native/" + path.relative_to(project).as_posix())
                 info.uid = info.gid = info.mtime = 0
                 info.uname = info.gname = ""
                 with path.open("rb") as content:
                     target.addfile(info, content)
             content = manifest.encode()
-            info = tarfile.TarInfo("codex-native/MANIFEST.sha256")
+            info = tarfile.TarInfo("grok-codex-native/MANIFEST.sha256")
             info.mode, info.size = 0o644, len(content)
             target.addfile(info, io.BytesIO(content))
     digest = hashlib.sha256(archive.read_bytes()).hexdigest()

@@ -18,6 +18,7 @@ The [workflow](.github/workflows/ci.yml) uses Python 3.11, the minimum supported
 
 | Check | What a failure detects |
 | --- | --- |
+| Secret scan | Credentials matching gitleaks rules anywhere in the commit history. It does not find every secret or private detail. |
 | Unit tests | Regressions in native control, deletion guards, completion results, and archive boundaries. |
 | `scripts/check-deployment.py` | Invalid Compose settings, changed mount or credential boundaries, missing native integrity locks, and invalid deployment Python syntax. It renders configuration without starting services. |
 | Wheel build and import outside the checkout | Missing package metadata or files that editable source imports would hide. |

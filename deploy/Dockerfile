@@ -6,9 +6,11 @@ ARG APP_UID=1000
 ARG APP_GID=1000
 ARG DEBIAN_SNAPSHOT=20261101T000000Z
 ENV DEBIAN_FRONTEND=noninteractive
-RUN sed -i "s|http://deb.debian.org/debian-security|http://snapshot.debian.org/archive/debian-security/${DEBIAN_SNAPSHOT}|g; s|http://deb.debian.org/debian|http://snapshot.debian.org/archive/debian/${DEBIAN_SNAPSHOT}|g" /etc/apt/sources.list.d/debian.sources \
-    && apt-get -o Acquire::Check-Valid-Until=false update \
-    && apt-get install -y --no-install-recommends ca-certificates curl git openssh-client python3 python3-venv bash zsh jq ripgrep unzip xz-utils \
+RUN node -e 'require("node:fs").writeFileSync("/tmp/grok-codex-bootstrap-ca.pem", require("node:tls").rootCertificates.join("\n") + "\n")' \
+    && sed -i "s|http://deb.debian.org/debian-security|https://snapshot.debian.org/archive/debian-security/${DEBIAN_SNAPSHOT}|g; s|http://deb.debian.org/debian|https://snapshot.debian.org/archive/debian/${DEBIAN_SNAPSHOT}|g" /etc/apt/sources.list.d/debian.sources \
+    && apt-get -o Acquire::https::CaInfo=/tmp/grok-codex-bootstrap-ca.pem -o Acquire::Check-Valid-Until=false update \
+    && apt-get -o Acquire::https::CaInfo=/tmp/grok-codex-bootstrap-ca.pem install -y --no-install-recommends ca-certificates curl git openssh-client python3 python3-venv bash zsh jq ripgrep unzip xz-utils \
+    && rm -f /tmp/grok-codex-bootstrap-ca.pem \
     && rm -rf /var/lib/apt/lists/* \
     && if getent group "$APP_GID" >/dev/null; then usermod --gid "$APP_GID" node; else groupmod --gid "$APP_GID" node; fi \
     && if [ "$APP_UID" != 1000 ]; then usermod --uid "$APP_UID" node; fi
