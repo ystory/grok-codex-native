@@ -1,0 +1,20 @@
+{
+  "worker": "grok-codex-worker-example",
+  "origin": "engineering-lead",
+  "title": "Repository task",
+  "thread": {
+    "environments": [
+      {
+        "environmentId": "grok-codex-worker-example",
+        "cwd": "/work/source",
+        "runtimeWorkspaceRoots": ["/work/source", "/work/artifacts"]
+      }
+    ]
+  },
+  "input": [
+    {
+      "type": "text",
+      "text": "Inspect the repository and implement the requested change. Run the relevant verification."
+    }
+  ]
+}

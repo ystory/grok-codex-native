@@ -1,0 +1,44 @@
+name: ${GROK_CODEX_PROJECT:-grok-codex}
+
+services:
+  control:
+    image: ${GROK_CODEX_PROJECT:-grok-codex}-control:0.166.0
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      target: control
+      args:
+        APP_UID: ${GROK_CODEX_UID:-1000}
+        APP_GID: ${GROK_CODEX_GID:-1000}
+    init: true
+    network_mode: host
+    restart: unless-stopped
+    cpus: ${GROK_CODEX_CONTROL_CPUS:-2}
+    mem_limit: ${GROK_CODEX_CONTROL_MEMORY:-2g}
+    pids_limit: 256
+    environment:
+      CODEX_HOME: /var/lib/grok-codex/codex
+      OPENAI_API_KEY: ""
+      CODEX_API_KEY: ""
+    volumes:
+      - ${GROK_CODEX_DATA:?Run scripts/prepare.sh first}/codex:/var/lib/grok-codex/codex
+      - ${GROK_CODEX_DATA:?Run scripts/prepare.sh first}/artifacts:/var/lib/grok-codex/artifacts
+      - ${GROK_CODEX_DATA:?Run scripts/prepare.sh first}/control-run:/run/grok-codex
+    healthcheck:
+      test: [CMD, python, /opt/project/deploy/healthcheck.py]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 15s
+
+  worker-template:
+    profiles: [build-worker]
+    image: ${GROK_CODEX_PROJECT:-grok-codex}-worker:0.166.0
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      target: worker
+      args:
+        APP_UID: ${GROK_CODEX_UID:-1000}
+        APP_GID: ${GROK_CODEX_GID:-1000}
+    entrypoint: [/bin/false]

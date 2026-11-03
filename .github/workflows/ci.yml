@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install development dependencies
+        run: python -m pip install -e '.[dev]'
+      - name: Run unit tests
+        run: python -m pytest -q
+      - name: Validate deployment configuration
+        run: python scripts/check-deployment.py
+      - name: Build wheel
+        run: python -m pip wheel --no-deps --wheel-dir dist .
+      - name: Import the installed wheel outside the checkout
+        run: |
+          python -m pip install --force-reinstall --no-deps dist/*.whl
+          cd "$RUNNER_TEMP"
+          python -c 'from grok_codex_native import client, handoff, purge'
+      - name: Build the deployment archive
+        run: python scripts/build-release.py --out "$RUNNER_TEMP/release"
+
+  native-smoke:
+    needs: check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.11'
+      - name: Prepare the isolated deployment
+        run: ./scripts/prepare.sh "$RUNNER_TEMP/grok-codex"
+      - name: Build the control and worker images
+        run: ./scripts/compose.sh --profile build-worker build
+      - name: Verify native startup and worker executable
+        run: |
+          ./scripts/compose.sh up -d --wait control
+          ./scripts/compose.sh exec -T control python deploy/healthcheck.py
+          ./scripts/compose.sh --profile build-worker run --rm --no-deps --entrypoint codex worker-template --version
+      - name: Clean up the disposable deployment
+        if: always()
+        run: |
+          if test -f deploy/.env; then
+            ./scripts/compose.sh --profile build-worker down
+          fi

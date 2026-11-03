@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+.pytest_cache/
+build/
+dist/
+deploy/.env
+.local/
+.env
+.env.*
+auth.json
+*.pem
+*.key
+.DS_Store
