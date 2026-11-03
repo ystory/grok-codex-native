@@ -237,6 +237,18 @@ class RestoreWorkerTests(unittest.TestCase):
                     execute.assert_not_called()
                     self.assertEqual(paths["token"].read_text().strip(), token)
 
+    def test_fractional_cpu_limit_uses_dockers_exact_decimal_value(self):
+        with tempfile.TemporaryDirectory() as directory:
+            config, paths, manifest, token = self.fixture(directory)
+            existing = self.existing(config, paths, manifest, token)
+            for cpus, nano in ((1.001, 1_001_000_000), (4.1, 4_100_000_000), (0.75, 750_000_000), (2, 2_000_000_000)):
+                with self.subTest(cpus=cpus):
+                    existing["HostConfig"]["NanoCpus"] = nano
+                    worker.validate_container(existing, config, manifest | {"cpus": cpus}, paths, image(), token)
+            existing["HostConfig"]["NanoCpus"] = 1_000_999_999
+            with self.assertRaises(ValueError):
+                worker.validate_container(existing, config, manifest | {"cpus": 1.001}, paths, image(), token)
+
     def test_explicit_restore_repairs_reset_metadata_without_changing_repo_file_modes(self):
         with tempfile.TemporaryDirectory() as directory:
             config, paths, _, _ = self.fixture(directory)

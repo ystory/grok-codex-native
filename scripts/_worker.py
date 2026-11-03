@@ -1,5 +1,6 @@
 """Typed worker launch data shared by creation and explicit restoration."""
 from contextlib import ExitStack, contextmanager
+from decimal import Decimal
 import fcntl
 import hashlib
 import json
@@ -372,7 +373,7 @@ def validate_container(container, config, manifest, paths, image, token):
               declared.get("Cmd") == executor_command(token), declared.get("Entrypoint") == image.get("Config", {}).get("Entrypoint"),
               dict(item.split("=", 1) for item in declared.get("Env") or []) == expected_env,
               host.get("NetworkMode") == paths["network"], host.get("Init") is True,
-              host.get("NanoCpus") == int(manifest["cpus"] * 1_000_000_000), host.get("Memory") == memory_bytes(manifest["memory"]),
+              host.get("NanoCpus") == int(Decimal(str(manifest["cpus"])) * 1_000_000_000), host.get("Memory") == memory_bytes(manifest["memory"]),
               host.get("PidsLimit") == manifest["pidsLimit"], host.get("ShmSize") == 512 * 1024 ** 2,
               host.get("Sysctls") == SYSCTLS, not host.get("Privileged"), not host.get("PublishAllPorts"),
               restart_safe,
