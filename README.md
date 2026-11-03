@@ -36,8 +36,6 @@ Install this on your own cloud computer, for your own use, with your own ChatGPT
 
 ## Install
 
-> **Draft:** these steps have not yet been run from a fresh checkout of this repository.
-
 Paste this into your Bot:
 
 > Install grok-codex-native on your cloud computer through Shell. Run `git clone --depth 1 https://github.com/ystory/grok-codex-native.git /workspace/grok-codex-native`, then run `python3 scripts/install-grok-cloud.py` in that directory as the normal user, without sudo. If it reports `authentication_still_required`, run the device login from the project's README and give me the link and code. Then save `skill/grok-codex-native/SKILL.md` as a private skill, enable it for this Bot, and report the health check result.
