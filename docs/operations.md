@@ -16,7 +16,7 @@ python3 scripts/build-release.py --out /absolute/private-release-dir
 
 For package version `0.1.0`, the outputs are `grok-codex-native-0.1.0.tar.gz` and its `.tar.gz.sha256` file. The script reads the current contents of Git-tracked files. Untracked files are omitted, so review the file list and diff first. Private `deploy/.env`, credentials, caches, and `.local` data do not belong in the archive.
 
-Tagged versions publish the same archive and checksum through the [release workflow](../.github/workflows/release.yml). Verify each archive using its companion checksum and internal manifest.
+Verify each archive using its companion checksum and internal manifest.
 
 On Grok Bot's cloud computer, verify the archive checksum, extract into a new directory, and verify the internal manifest.
 
