@@ -26,12 +26,12 @@ def test_release_contains_reviewed_files_and_rejects_unstaged_changes(tmp_path):
     assert first.read_bytes() == (tmp_path / "second" / first.name).read_bytes()
     with tarfile.open(first) as archive:
         assert set(archive.getnames()) == {
-            "codex-native/pyproject.toml", "codex-native/scripts/build-release.py", "codex-native/MANIFEST.sha256",
+            "grok-codex-native/pyproject.toml", "grok-codex-native/scripts/build-release.py", "grok-codex-native/MANIFEST.sha256",
         }
-        manifest = archive.extractfile("codex-native/MANIFEST.sha256").read().decode()
+        manifest = archive.extractfile("grok-codex-native/MANIFEST.sha256").read().decode()
         for line in manifest.splitlines():
             digest, relative = line.split("  ", 1)
-            assert hashlib.sha256(archive.extractfile("codex-native/" + relative).read()).hexdigest() == digest
+            assert hashlib.sha256(archive.extractfile("grok-codex-native/" + relative).read()).hexdigest() == digest
     (project / "pyproject.toml").write_text('[project]\nversion = "0.2.0"\n')
     refused = subprocess.run(command + [str(tmp_path / "dirty")], capture_output=True, text=True)
     assert refused.returncode != 0
