@@ -29,7 +29,7 @@ For a fresh turn on an unloaded thread, resume first, then set the worker in `tu
 
 ## Supply a task and inputs
 
-The [launch example](../README.md#start-a-task) takes native `thread/start` parameters in `brief.thread` and native input items in `brief.input`.
+The [launch example](../examples/launch_and_wait.py) takes native `thread/start` parameters in `brief.thread` and native input items in `brief.input`.
 
 Set a model, settings, or repository skill only when explicitly requested. Check a requested model with `c.model_list()`, then set native thread parameter `model`. Set a requested reasoning effort through `config.model_reasoning_effort`. Keep `approvalPolicy: "never"`. The launch example applies native `externalSandbox` to the first turn. Inspect the effective values in the start response and preserve native errors for rejected options.
 
@@ -288,7 +288,7 @@ Source files, uncommitted changes, external GitHub objects, and copies already d
 - Read models with `c.model_list()` and follow native pagination.
 - Inspect registered environments through Docker management labels, `environment/status`, and `environment/info`. Re-register after server restart.
 - Find repositories through existing GitHub tools or `gh repo list`, and verify Git access.
-- Select computers through Grok's available computer selection or existing SSH connections.
+- Use Shell on Grok Bot's own account-shared cloud computer, where this project and its workers are installed.
 - Inspect source and artifact bind mounts and the `new-worker.py` output for file locations.
 - Inspect the repository's actual `SKILL.md` and native catalog for skills. Control-local `skills/list` does not prove remote worker discovery.
 

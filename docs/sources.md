@@ -17,16 +17,19 @@ The implementation and documentation target Codex CLI `0.166.0`, official Python
 
 ## Grok Bot integration
 
-The original design review consulted these official Grok Bot documents on 2026-11-03.
+The design review consulted these official Grok Bot documents on 2026-11-03.
 
 - [Use the computer and apps](https://docs.x.ai/grok-bot/computer-and-apps) describes account-shared computers, filesystems, command-line access, and sharing across Bots. Separate Bot screens do not establish separate security boundaries.
 - [Skills and routines](https://docs.x.ai/grok-bot/skills-routines-and-automations) describes the shared private skill library, per-Bot activation, and supported skill-saving UI.
+- [Work with files](https://docs.x.ai/grok-bot/computer-and-apps#work-with-files) and [update the hosted computers](https://docs.x.ai/grok-bot/deployment#update-the-hosted-computers) distinguish durable `/workspace` files from replaceable packages and runtime environments.
 
-These pages do not establish detailed Shell parameters or the file-attachment tool schema. A separate private maintainer observation found that a delayed existing Task completion woke the parent Bot. Shell-only background wakeup remains unverified. Check the current tools and actual deployment for the complete Task-owned native wait and `SendMessage` file delivery flow. Grok Build CLI paths are not Grok Bot skill installation paths.
+These pages do not establish detailed Shell parameters or the file-attachment tool schema. Those were observed in testing; see [what was tested](contract.md#what-was-tested). Grok Build CLI paths are not Grok Bot skill installation paths.
 
 ## Evidence boundaries
 
-Distinguish source-defined capability, deployment configuration, actual backend execution, Grok registration, and file delivery. The [capability reference](contract.md) records supported paths and remaining acceptance checks. The [maintainer report](verification-results.md) labels private observations. Private credentials, captures, and execution records are excluded from public source and the skill body.
+Distinguish source-defined capability, deployment configuration, actual backend execution, Grok registration, and file delivery. The [capabilities page](contract.md) records supported paths and observed limits. Private credentials, captures, and execution records are excluded from public source and the skill body.
+
+The control evidence also distinguishes native terminal state from physical command state: native interruption returned successfully while the worker PID was still alive about 8.4 seconds later, and native full history omitted that command's item. Later PID absence does not identify the exact stop time or root cause. These observations limit completion claims; they do not establish a diagnosed defect inside the pinned `deferred_executor` implementation.
 
 ## Development and repository conventions
 
@@ -39,4 +42,4 @@ Repository conventions were reviewed on 2026-11-03. The scope was documentation,
 - Docker's [config](https://docs.docker.com/reference/cli/docker/compose/config/), [build](https://docs.docker.com/reference/cli/docker/compose/build/), [up](https://docs.docker.com/reference/cli/docker/compose/up/), and [run](https://docs.docker.com/reference/cli/docker/compose/run/) references distinguish static configuration, image builds, healthy startup, and a disposable command. CI starts control without login and runs the worker binary. The deployment helper's login guard leaves worker registration and model turns to manual acceptance.
 - The [Python Packaging User Guide](https://packaging.python.org/en/latest/tutorials/packaging-projects/) and [pyproject reference](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/) define the build metadata, license declaration, and distribution workflow. CI verifies an installed wheel and builds the deployment archive.
 
-The workflow is prepared locally. Hosted CI results require a future repository and push; no hosted success is implied by this configuration.
+Two hosted failures led to an explicit Bake `network.host` grant and exact checkout-root context overrides for both image targets.
