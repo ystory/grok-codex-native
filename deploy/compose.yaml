@@ -7,6 +7,7 @@ services:
       context: ..
       dockerfile: deploy/Dockerfile
       target: control
+      network: host
       args:
         APP_UID: ${GROK_CODEX_UID:-1000}
         APP_GID: ${GROK_CODEX_GID:-1000}
@@ -38,6 +39,7 @@ services:
       context: ..
       dockerfile: deploy/Dockerfile
       target: worker
+      network: host
       args:
         APP_UID: ${GROK_CODEX_UID:-1000}
         APP_GID: ${GROK_CODEX_GID:-1000}
